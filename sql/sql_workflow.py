@@ -308,7 +308,10 @@ def execute(request):
         }
         return render(request, "error.html", context)
     sys_config = SysConfig()
-    if not request.user.is_superuser and on_query_low_peak_time_ddl(workflow_id) is False:
+    if (
+            not request.user.is_superuser
+            and on_query_low_peak_time_ddl(workflow_id) is False
+    ):
         start = sys_config.get("query_low_peak_start", 0)
         end = sys_config.get("query_low_peak_end", 24)
         context = {

@@ -341,11 +341,17 @@ class ExecuteWorkflow(views.APIView):
                     }
                 )
             sys_config = SysConfig()
-            if not request.user.is_superuser and on_query_low_peak_time_ddl(workflow_id) is False:
+            if (
+                    not request.user.is_superuser
+                    and on_query_low_peak_time_ddl(workflow_id) is False
+            ):
                 start = sys_config.get("query_low_peak_start", 0)
                 end = sys_config.get("query_low_peak_end", 24)
                 raise serializers.ValidationError(
-                    {"errMsg": "管理员设置了业务低峰期时间范围:每天%s:00至%s,你只能在业务低峰时间范围执行DDL工单操作!" % (start, end)}
+                    {
+                        "errMsg": "管理员设置了业务低峰期时间范围:每天%s:00至%s,你只能在业务低峰时间范围执行DDL工单操作!"
+                                  % (start, end)
+                    }
                 )
 
             # 获取审核信息
