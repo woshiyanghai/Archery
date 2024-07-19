@@ -304,15 +304,6 @@
                                     </div>
                                 </div>
                             </div>
-                                                        <div class="form-group">
-                                <label for="query_low_peak" class="col-sm-4 control-label">QUERY_LOW_PEAK</label>
-                                <div class="col-sm-5">
-                                    <input type="text" class="form-control"
-                                           id="query_low_peak" key="query_low_peak"
-                                           value="{{ config.query_low_peak }}"
-                                           placeholder="每天业务低峰时间段，填写时间段，多个时段使用逗号分割"
-                                </div>
-                            </div>
                             <div class="form-group">
                                 <label for="query_low_peak_query"
                                        class="col-sm-4 control-label">QUERY_LOW_PEAK_QUERY</label>
@@ -320,9 +311,20 @@
                                     <select id="query_low_peak_query" key="query_low_peak_query"
                                             class="selectpicker show-tick form-control bs-select-hidden"
                                             data-live-search="true"
-                                            data-none-selected-text="必须在低峰期执行操作操作？默认为空，不限制"
+                                            data-none-selected-text="必须在低峰期执行操作操作？默认DML,DDL"
                                             multiple required>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="query_low_peak" class="col-sm-4 control-label">QUERY_LOW_PEAK</label>
+                                <div class="col-sm-5">
+                                    <input type="text" class="form-control"
+                                           id="query_low_peak" key="query_low_peak"
+                                           value="{{ config.query_low_peak }}"
+                                           placeholder="每天业务低峰开始时间，单位小时，默认为空"
+                                           pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]-([01]?[0-9]|2[0-3]):[0-5][0-9](,([01]?[0-9]|2[0-3]):[0-5][0-9]-([01]?[0-9]|2[0-3]):[0-5][0-9])*$"
+                                           title="请输入正确的时间范围，如：12:00-14:00,16:00-21:00,23:00-24:00" />
                                 </div>
                             </div>
                             <div class="form-group">
@@ -1117,18 +1119,7 @@
                                            key="announcement_content"
                                            value="{{ config.announcement_content }}"
                                            placeholder="公告内容">
-                                            
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="custom_title_suffix"
-                                       class="col-sm-4 control-label">CUSTOM_TITLE_SUFFIX</label>
-                                <div class="col-sm-5">
-                                    <input type="text" class="form-control"
-                                           id="custom_title_suffix"
-                                           key="custom_title_suffix"
-                                           value="{{ config.custom_title_suffix }}"
-                                           placeholder="在网站标题及登录页面追加此内容, 可用于多archery实例的区分">
+
                                 </div>
                             </div>
                         </div>
@@ -1202,7 +1193,7 @@
 
             // query_low_peak_query参数处理
             let queryConfig = "{{ config.query_low_peak_query }}";
-            let queryPhases = ['DDL', 'DML'];
+            let queryPhases = ['DML', 'DDL'];
             setupSelectPicker("#query_low_peak_query", queryConfig, queryPhases);
 
             // api_user_whitelist参数处理
@@ -1326,7 +1317,6 @@
                 }
             }
         });
-
         // 修改系统设置
         $("#saveconfig").click(function () {
             // 当开启钉钉通知到个人时，企业id和secret等必须填写
@@ -1345,10 +1335,6 @@
             var query_low_peak = $("#query_low_peak").val();
             var periods = query_low_peak.split(',');
             var timePattern = /^([01]\d|2[0-3]):([0-5]\d)-([01]\d|2[0-3]):([0-5]\d)$/;
-            if (!timePattern.test(start + '-' + end)) {
-                alert('时间格式错误或时间逻辑错误，请确保时间格式为 HH:MM-HH:MM，且结束时间大于开始时间');
-                return ; // 阻止进一步执行
-            }
                 for (var i = 0; i < periods.length; i++) {
                     if (!timePattern.test(periods[i])) {
                         alert('业务低峰时段时间格式错误，正确格式为 HH:MM-HH:MM，例如 "12:00-14:00"');
