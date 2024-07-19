@@ -63,6 +63,7 @@ def on_query_low_peak_time_ddl(workflow_id, run_date=None):
             if start <= run_time <= end:
                 return True  # 如果 run_time 在当前时间段内，直接返回 True
         return False  # 只有当 run_time 不在任何时间段内时，才返回 False
+
     if "DML" in peak_action and syntax_type == 2:
         return is_without_peak_periods(run_time, periods)
     if "DDL" in peak_action and syntax_type == 1:
