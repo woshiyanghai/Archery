@@ -161,26 +161,6 @@
                         <h5 style="color: darkgrey"><b>SQL上线</b></h5>
                         <hr/>
                         <div class="form-horizontal">
-                                                        <div class="form-group">
-                                <label for="query_low_peak_start"
-                                       class="col-sm-4 control-label">QUERY_LOW_PEAK_START</label>
-                                <div class="col-sm-5">
-                                    <input type="number" class="form-control" id="query_low_peak_start"
-                                           key="query_low_peak_start"
-                                           value="{{ config.query_low_peak_start }}"
-                                           placeholder="每天业务低峰开始时间，单位小时，默认为空" />
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="query_low_peak_end"
-                                       class="col-sm-4 control-label">QUERY_LOW_PEAK_END</label>
-                                <div class="col-sm-5">
-                                    <input type="number" class="form-control" id="query_low_peak_end"
-                                           key="query_low_peak_end"
-                                           value="{{ config.query_low_peak_end }}"
-                                           placeholder="每天业务低峰结束时间，单位小时，默认为空" />
-                                </div>
-                            </div>
                             <div class="form-group">
                                 <label for="critical_ddl_regex"
                                        class="col-sm-4 control-label">CRITICAL_DDL_REGEX</label>
@@ -322,6 +302,27 @@
                                             是否禁止DDL和DML在SQL上线同时提交(MySQL)
                                         </label>
                                     </div>
+                                </div>
+                            </div>
+                                                        <div class="form-group">
+                                <label for="query_low_peak" class="col-sm-4 control-label">QUERY_LOW_PEAK</label>
+                                <div class="col-sm-5">
+                                    <input type="text" class="form-control"
+                                           id="query_low_peak" key="query_low_peak"
+                                           value="{{ config.query_low_peak }}"
+                                           placeholder="每天业务低峰时间段，填写时间段，多个时段使用逗号分割"
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="query_low_peak_query"
+                                       class="col-sm-4 control-label">QUERY_LOW_PEAK_QUERY</label>
+                                <div class="col-sm-5">
+                                    <select id="query_low_peak_query" key="query_low_peak_query"
+                                            class="selectpicker show-tick form-control bs-select-hidden"
+                                            data-live-search="true"
+                                            data-none-selected-text="必须在低峰期执行操作操作？默认为空，不限制"
+                                            multiple required>
+                                    </select>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -1179,6 +1180,31 @@
     <script>
 
         $(document).ready(function (){
+            function setupSelectPicker(selector, configValue, defaultPhases) {
+                let $select = $(selector);
+                let cfgArr = configValue ? configValue.split(',') : defaultPhases;
+                $select.empty();
+
+                defaultPhases.forEach(phase => {
+                    let isSelected = cfgArr.includes(phase) ? ' selected' : '';
+                    let option = `<option value="${phase}"${isSelected}>${phase}</option>`;
+                    $select.append(option);
+                });
+
+                $select.selectpicker('render');
+                $select.selectpicker('refresh');
+            }
+
+            // notify_phase_control参数处理
+            let notifyConfig = "{{ config.notify_phase_control }}";
+            let notifyPhases = ['Apply', 'Pass', 'Execute', 'Cancel'];
+            setupSelectPicker("#notify_phase_control", notifyConfig, notifyPhases);
+
+            // query_low_peak_query参数处理
+            let queryConfig = "{{ config.query_low_peak_query }}";
+            let queryPhases = ['DDL', 'DML'];
+            setupSelectPicker("#query_low_peak_query", queryConfig, queryPhases);
+
             // notify_phase_control参数处理
             let cfg_value = "{{ config.notify_phase_control }}";
             let phases = ['Apply', 'Pass', 'Execute', 'Cancel'];
@@ -1202,6 +1228,34 @@
             }
             $("#notify_phase_control").selectpicker('render');
             $("#notify_phase_control").selectpicker('refresh');
+
+            // query_low_peak_query参数处理
+            let cfg_value = "{{ config.query_low_peak_query }}";
+            let phases = ['DDL', 'DML'];
+
+            if (cfg_value === "") {
+                // cfg_value未设置时，默认不选中任何选项
+                for (let i = 0; i < phases.length; i++) {
+                    let phase = "<option value=\"" + phases[i] + "\">" + phases[i] + "</option>";
+                    $("#query_low_peak_query").append(phase);
+                }
+            } else {
+                // cfg_value已设置，根据设置选中相应的选项
+                let cfg_arr = cfg_value.split(',');
+                for (let i = 0; i < phases.length; i++) {
+                    let phase = "";
+                    if (cfg_arr.indexOf(phases[i]) >= 0) {
+                        phase = "<option value=\"" + phases[i] + "\" selected>" + phases[i] + "</option>";
+                    } else {
+                        phase = "<option value=\"" + phases[i] + "\">" + phases[i] + "</option>";
+                    }
+                    $("#query_low_peak_query").append(phase);
+                }
+            }
+
+            // 初始化selectpicker
+            $("#query_low_peak_query").selectpicker('render');
+            $("#query_low_peak_query").selectpicker('refresh');
 
             // api_user_whitelist参数处理
             let api_config = "{{ config.api_user_whitelist }}";
@@ -1339,13 +1393,27 @@
                     return;
                 }
             }
-            // 业务低峰期时间设置，开始时间和结束时间必须同时填写
-            var start = $("#query_low_peak_start").val();
-            var end = $("#query_low_peak_end").val();
-            if ((start === "" && end !== "") || (start !== "" && end === "")) {
-                alert('业务低峰开始时间和结束时间必须同时填写！');
-                return;
+            // 校验时间段格式和有效性的函数
+            var query_low_peak = $("#query_low_peak").val();
+            var periods = query_low_peak.split(',');
+            var timePattern = /^([01]\d|2[0-3]):([0-5]\d)-([01]\d|2[0-3]):([0-5]\d)$/;
+            if (!timePattern.test(start + '-' + end)) {
+                alert('时间格式错误或时间逻辑错误，请确保时间格式为 HH:MM-HH:MM，且结束时间大于开始时间');
+                return ; // 阻止进一步执行
             }
+                for (var i = 0; i < periods.length; i++) {
+                    if (!timePattern.test(periods[i])) {
+                        alert('业务低峰时段时间格式错误，正确格式为 HH:MM-HH:MM，例如 "12:00-14:00"');
+                        return ;
+                    }
+                    var times = periods[i].split('-');
+                    var startTime = times[0];
+                    var endTime = times[1];
+                    if (startTime >= endTime) {
+                        alert('业务低峰时段时间范围错误，结束时间必须大于开始时间');
+                        return ;
+                    }
+                }
             var sys_config = $("#div-system-config");
             var configs = [];
             sys_config.find('[key]').each(

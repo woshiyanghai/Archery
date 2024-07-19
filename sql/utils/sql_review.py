@@ -50,16 +50,27 @@ def on_query_low_peak_time_ddl(workflow_id, run_date=None):
     """
     config = SysConfig()
     workflow_detail = SqlWorkflow.objects.get(id=workflow_id)
-    start = int(config.get("query_low_peak_start", 0))
-    end = int(config.get("query_low_peak_end", 0))
     result = True
     ctime = run_date or datetime.datetime.now()
-    hour = ctime.hour
+    run_time = f"{ctime.hour:02}:{ctime.minute:02}"
     syntax_type = workflow_detail.syntax_type
-    if syntax_type == 1:
-        if (start and hour < start) or (end and hour > end):
-            result = False
+    periods = config.get("query_low_peak", "")
+    peak_action = config.get("query_low_peak_query", "")
+
+    def is_without_peak_periods(run_time, periods):
+        for period in periods.split(','):
+            start, end = period.split('-')
+            if start <= run_time <= end:
+                return True  # 如果 run_time 在当前时间段内，直接返回 True
+        return False  # 只有当 run_time 不在任何时间段内时，才返回 False
+
+    if 'DML' in peak_action and syntax_type == 1:
+        return is_without_peak_periods(run_time, periods)
+    if 'DDL' in peak_action and syntax_type == 2:
+        return is_without_peak_periods(run_time, periods)
     return result
+
+
 
 
 def on_correct_time_period(workflow_id, run_date=None):
