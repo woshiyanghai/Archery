@@ -1205,58 +1205,6 @@
             let queryPhases = ['DDL', 'DML'];
             setupSelectPicker("#query_low_peak_query", queryConfig, queryPhases);
 
-            // notify_phase_control参数处理
-            let cfg_value = "{{ config.notify_phase_control }}";
-            let phases = ['Apply', 'Pass', 'Execute', 'Cancel'];
-            // notify_phase_control未设置时默认全部开启
-            if (cfg_value === "") {
-                for (let i in phases) {
-                    let phase = "<option value=\"" + phases[i]+ "\" selected>" + phases[i] + "</option>"
-                    $("#notify_phase_control").append(phase)
-                }
-            } else {
-                for (let i=0;i<phases.length;i++) {
-                    let phase = "";
-                    let cfg_arr = cfg_value.split(',');
-                    if (cfg_arr.indexOf(phases[i]) >= 0) {
-                        phase = "<option value=\"" + phases[i]+ "\" selected>" + phases[i] + "</option>"
-                    } else {
-                        phase = "<option value=\"" + phases[i]+ "\">" + phases[i] + "</option>"
-                    }
-                    $("#notify_phase_control").append(phase)
-                }
-            }
-            $("#notify_phase_control").selectpicker('render');
-            $("#notify_phase_control").selectpicker('refresh');
-
-            // query_low_peak_query参数处理
-            let cfg_value = "{{ config.query_low_peak_query }}";
-            let phases = ['DDL', 'DML'];
-
-            if (cfg_value === "") {
-                // cfg_value未设置时，默认不选中任何选项
-                for (let i = 0; i < phases.length; i++) {
-                    let phase = "<option value=\"" + phases[i] + "\">" + phases[i] + "</option>";
-                    $("#query_low_peak_query").append(phase);
-                }
-            } else {
-                // cfg_value已设置，根据设置选中相应的选项
-                let cfg_arr = cfg_value.split(',');
-                for (let i = 0; i < phases.length; i++) {
-                    let phase = "";
-                    if (cfg_arr.indexOf(phases[i]) >= 0) {
-                        phase = "<option value=\"" + phases[i] + "\" selected>" + phases[i] + "</option>";
-                    } else {
-                        phase = "<option value=\"" + phases[i] + "\">" + phases[i] + "</option>";
-                    }
-                    $("#query_low_peak_query").append(phase);
-                }
-            }
-
-            // 初始化selectpicker
-            $("#query_low_peak_query").selectpicker('render');
-            $("#query_low_peak_query").selectpicker('refresh');
-
             // api_user_whitelist参数处理
             let api_config = "{{ config.api_user_whitelist }}";
             $.ajax({
