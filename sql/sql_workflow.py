@@ -316,7 +316,7 @@ def execute(request):
         peak_action = sys_config.get("query_low_peak_query", "")
         context = {
             "errMsg": "管理员设置了业务低峰期时间范围:%s,你只能在业务低峰时间范围执行%s工单操作!"
-            % (periods,peak_action)
+            % (periods, peak_action)
         }
         return render(request, "error.html", context)
     # 获取审核信息
