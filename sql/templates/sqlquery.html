@@ -970,7 +970,7 @@
                 else if (sql === 'show create table') {
                     sqlContent = "desc " + $("#table_name").val() + ";"
                 }
-            } else if (optgroup === "MySQL" || optgroup === "PgSQL" ) {
+            } else if (optgroup === "MySQL" ) {
                 //查看执行计划
                 if (sql === 'explain') {
                     sqlContent = 'explain ' + sqlContent
@@ -978,6 +978,15 @@
                 //查看表结构
                 else if (sql === 'show create table') {
                     sqlContent = "show create table " + $("#table_name").val() + ";"
+                }
+            } else if (optgroup === "PgSQL" ) {
+                //查看执行计划
+                if (sql === 'explain') {
+                    sqlContent = 'explain ' + sqlContent
+                }
+                //查看表结构
+                else if (sql === 'show create table') {
+                    sqlContent = "show  table " + $("#table_name").val() + ";"
                 }
             } else if (optgroup === "Mongo") {
                 //查看执行计划
