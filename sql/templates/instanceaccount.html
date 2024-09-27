@@ -12,6 +12,7 @@
                         data-live-search="true">
                     <optgroup id="optgroup-mysql" label="MySQL"></optgroup>
                     <optgroup id="optgroup-mongo" label="Mongo"></optgroup>
+                    <optgroup id="optgroup-pgsql" label="Pgsql"></optgroup>
                 </select>
             </div>
             <div class="form-group">
@@ -1240,6 +1241,42 @@
                             }
                         }
                     ]
+                case 'pgsql':
+                    return [
+                        {
+                            title: '数据库名',
+                            field: 'db_name'
+                        }, {
+                            title: '账号',
+                            field: 'user',
+                            formatter: function (value, row, index) {
+                                if (row.saved) {
+                                    return "<a target=\"_blank\" href=\"/admin/sql/instanceaccount/" + row.id + "/change/\">" + value + "</a>"
+                                } else {
+                                    return value
+                                }
+                            }
+                        }, {
+                            title: '角色',
+                            field: 'roles',
+                            formatter: function (value, row, index) {
+                                return value.join(',')
+                            }
+                        }, {
+                            title: '备注',
+                            field: 'remark'
+                        }, {
+                            title: '操作',
+                            field: '',
+                            formatter: function (value, row, index) {
+                                let btn_edit = "<button class=\"btn btn-info btn-xs\" db_name_user=\"" + row.db_name_user + "\" onclick=\"show_edit_modal(this)" + "\">编辑</button>\n";
+                                let btn_modify_grants = "<button class=\"btn btn-primary btn-xs\" db_name_user=\"" + row.db_name_user + "\" onclick=\"show_grants_modal(this)" + "\">授权</button>\n";
+                                let btn_reset_passwd = "<button class=\"btn btn-warning btn-xs\" db_name_user=\"" + row.db_name_user + "\" onclick=\"show_reset_modal(this)" + "\">改密</button>\n";
+                                let btn_del_account = "<button class=\"btn btn-danger btn-xs\" db_name_user=\"" + row.db_name_user + "\" onclick=\"show_delete_modal(this)" + "\">删除</button>\n";
+                                return btn_edit + btn_modify_grants + btn_reset_passwd + btn_del_account
+                            }
+                        }
+                    ]
                 default:
                     return []
             }
@@ -1829,7 +1866,7 @@
                     url: "/group/user_all_instances/",
                     dataType: "json",
                     data: {
-                        db_type: ['mysql', 'mongo']
+                        db_type: ['mysql', 'mongo','pgsql']
                     },
                     complete: function () {
                     },
